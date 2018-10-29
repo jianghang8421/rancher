@@ -13,6 +13,7 @@ var (
 
 	AgentImage                      = NewSetting("agent-image", "rancher/rancher-agent:master")
 	WindowsAgentImage               = NewSetting("windows-agent-image", "rancher/rancher-agent:master-nanoserver-1803")
+	ArmAgentImage                   = NewSetting("arm-agent-image", "rancher/rancher-agent:master")
 	CACerts                         = NewSetting("cacerts", "")
 	CLIURLDarwin                    = NewSetting("cli-url-darwin", "https://releases.rancher.com/cli/v1.0.0-alpha8/rancher-darwin-amd64-v1.0.0-alpha8.tar.gz")
 	CLIURLLinux                     = NewSetting("cli-url-linux", "https://releases.rancher.com/cli/v1.0.0-alpha8/rancher-linux-amd64-v1.0.0-alpha8.tar.gz")

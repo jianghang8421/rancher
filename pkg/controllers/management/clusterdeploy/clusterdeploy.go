@@ -95,7 +95,12 @@ func (cd *clusterDeploy) doSync(cluster *v3.Cluster) error {
 func (cd *clusterDeploy) deployAgent(cluster *v3.Cluster) error {
 	desired := cluster.Spec.DesiredAgentImage
 	if desired == "" || desired == "fixed" {
-		desired = image.Resolve(settings.AgentImage.Get())
+		switch cluster.Spec.Arch {
+		case "amd64":
+			desired = image.Resolve(settings.AgentImage.Get())
+		case "arm64":
+			desired = image.Resolve(settings.ArmAgentImage.Get())
+		}
 	}
 
 	if cluster.Status.AgentImage == desired {

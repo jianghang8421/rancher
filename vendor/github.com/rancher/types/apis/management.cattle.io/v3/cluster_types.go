@@ -71,6 +71,7 @@ type ClusterSpec struct {
 	DefaultClusterRoleForProjectMembers  string                               `json:"defaultClusterRoleForProjectMembers,omitempty" norman:"type=reference[roleTemplate]"`
 	DockerRootDir                        string                               `json:"dockerRootDir,omitempty" norman:"default=/var/lib/docker"`
 	EnableNetworkPolicy                  *bool                                `json:"enableNetworkPolicy" norman:"default=false"`
+	Arch                                 string                               `json:"arch" norman:"default=amd64"`
 }
 
 type ImportedConfig struct {

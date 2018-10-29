@@ -14,6 +14,7 @@ const (
 	ClusterFieldAppliedEnableNetworkPolicy           = "appliedEnableNetworkPolicy"
 	ClusterFieldAppliedPodSecurityPolicyTemplateName = "appliedPodSecurityPolicyTemplateId"
 	ClusterFieldAppliedSpec                          = "appliedSpec"
+	ClusterFieldArch                                 = "arch"
 	ClusterFieldAzureKubernetesServiceConfig         = "azureKubernetesServiceConfig"
 	ClusterFieldCACert                               = "caCert"
 	ClusterFieldCapacity                             = "capacity"
@@ -56,6 +57,7 @@ type Cluster struct {
 	AppliedEnableNetworkPolicy           bool                                 `json:"appliedEnableNetworkPolicy,omitempty" yaml:"appliedEnableNetworkPolicy,omitempty"`
 	AppliedPodSecurityPolicyTemplateName string                               `json:"appliedPodSecurityPolicyTemplateId,omitempty" yaml:"appliedPodSecurityPolicyTemplateId,omitempty"`
 	AppliedSpec                          *ClusterSpec                         `json:"appliedSpec,omitempty" yaml:"appliedSpec,omitempty"`
+	Arch                                 string                               `json:"arch,omitempty" yaml:"arch,omitempty"`
 	AzureKubernetesServiceConfig         *AzureKubernetesServiceConfig        `json:"azureKubernetesServiceConfig,omitempty" yaml:"azureKubernetesServiceConfig,omitempty"`
 	CACert                               string                               `json:"caCert,omitempty" yaml:"caCert,omitempty"`
 	Capacity                             map[string]string                    `json:"capacity,omitempty" yaml:"capacity,omitempty"`
