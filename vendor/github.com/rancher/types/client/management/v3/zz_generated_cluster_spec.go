@@ -3,6 +3,7 @@ package client
 const (
 	ClusterSpecType                                     = "clusterSpec"
 	ClusterSpecFieldAmazonElasticContainerServiceConfig = "amazonElasticContainerServiceConfig"
+	ClusterSpecFieldArch                                = "arch"
 	ClusterSpecFieldAzureKubernetesServiceConfig        = "azureKubernetesServiceConfig"
 	ClusterSpecFieldDefaultClusterRoleForProjectMembers = "defaultClusterRoleForProjectMembers"
 	ClusterSpecFieldDefaultPodSecurityPolicyTemplateID  = "defaultPodSecurityPolicyTemplateId"
@@ -19,6 +20,7 @@ const (
 
 type ClusterSpec struct {
 	AmazonElasticContainerServiceConfig *AmazonElasticContainerServiceConfig `json:"amazonElasticContainerServiceConfig,omitempty" yaml:"amazonElasticContainerServiceConfig,omitempty"`
+	Arch                                string                               `json:"arch,omitempty" yaml:"arch,omitempty"`
 	AzureKubernetesServiceConfig        *AzureKubernetesServiceConfig        `json:"azureKubernetesServiceConfig,omitempty" yaml:"azureKubernetesServiceConfig,omitempty"`
 	DefaultClusterRoleForProjectMembers string                               `json:"defaultClusterRoleForProjectMembers,omitempty" yaml:"defaultClusterRoleForProjectMembers,omitempty"`
 	DefaultPodSecurityPolicyTemplateID  string                               `json:"defaultPodSecurityPolicyTemplateId,omitempty" yaml:"defaultPodSecurityPolicyTemplateId,omitempty"`

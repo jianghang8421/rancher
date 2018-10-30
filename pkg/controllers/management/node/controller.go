@@ -255,7 +255,8 @@ func (m *Lifecycle) deployAgent(nodeDir string, obj *v3.Node) error {
 		return err
 	}
 
-	drun := clusterregistrationtokens.NodeCommand(token)
+	logrus.Info("jianghang debug" + obj.Status.DockerInfo.Architecture)
+	drun := clusterregistrationtokens.NodeCommand(token, obj.Status.DockerInfo.Architecture)
 	args := buildAgentCommand(obj, drun)
 	cmd := buildCommand(nodeDir, args)
 	output, err := cmd.CombinedOutput()

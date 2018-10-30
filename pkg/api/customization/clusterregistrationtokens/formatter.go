@@ -39,6 +39,13 @@ func Formatter(request *types.APIContext, resource *types.RawResource) {
 			getRootURL(request),
 			token,
 			caNonWindows)
+
+		resource.Values["armNodeCommand"] = fmt.Sprintf(nodeCommandFormat,
+			image.Resolve(settings.ArmAgentImage.Get()),
+			getRootURL(request),
+			token,
+			caNonWindows)
+
 		resource.Values["token"] = token
 		resource.Values["manifestUrl"] = url
 		resource.Values["windowsNodeCommand"] = fmt.Sprintf(windowsNodeCommandFormat,
@@ -49,17 +56,32 @@ func Formatter(request *types.APIContext, resource *types.RawResource) {
 	}
 }
 
-func NodeCommand(token string) string {
+func NodeCommand(token, architecture string) string {
 	ca := systemtemplate.CAChecksum()
 	if ca != "" {
 		ca = " --ca-checksum " + ca
 	}
 
-	return fmt.Sprintf(nodeCommandFormat,
-		image.Resolve(settings.AgentImage.Get()),
-		getRootURL(nil),
-		token,
-		ca)
+	switch architecture {
+	case "amd64":
+		return fmt.Sprintf(nodeCommandFormat,
+			image.Resolve(settings.AgentImage.Get()),
+			getRootURL(nil),
+			token,
+			ca)
+	case "arm64":
+		return fmt.Sprintf(nodeCommandFormat,
+			image.Resolve(settings.ArmAgentImage.Get()),
+			getRootURL(nil),
+			token,
+			ca)
+	default:
+		return fmt.Sprintf(nodeCommandFormat,
+			image.Resolve(settings.AgentImage.Get()),
+			getRootURL(nil),
+			token,
+			ca)
+	}
 }
 
 func getRootURL(request *types.APIContext) string {
