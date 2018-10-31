@@ -3,7 +3,6 @@ package cluster
 import (
 	"github.com/rancher/norman/types"
 	"github.com/rancher/rancher/pkg/randomtoken"
-	"github.com/sirupsen/logrus"
 )
 
 type RegistrationTokenStore struct {
@@ -17,10 +16,6 @@ func (r *RegistrationTokenStore) Create(apiContext *types.APIContext, schema *ty
 			return nil, err
 		}
 		data["token"] = token
-
-		logrus.Infof("jianghang %s", apiContext)
-		logrus.Infof("jianghang %s", schema)
-		logrus.Infof("jianghang %s", data)
 	}
 
 	return r.Store.Create(apiContext, schema, data)

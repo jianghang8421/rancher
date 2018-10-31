@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/sirupsen/logrus"
+
+	"github.com/rancher/norman/api/access"
+
 	"github.com/rancher/norman/types"
 	"github.com/rancher/rancher/pkg/image"
 	"github.com/rancher/rancher/pkg/settings"
@@ -28,6 +32,10 @@ func Formatter(request *types.APIContext, resource *types.RawResource) {
 		caNonWindows = " --ca-checksum " + ca
 		caWindows = " -caChecksum " + ca
 	}
+
+	var into interface{}
+	access.List(request, request.Version, request.Type, nil, into)
+	logrus.Infof("jianghang %s", into)
 
 	token, _ := resource.Values["token"].(string)
 	if token != "" {
