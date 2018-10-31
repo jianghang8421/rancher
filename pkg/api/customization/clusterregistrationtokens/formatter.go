@@ -1,7 +1,6 @@
 package clusterregistrationtokens
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/url"
 
@@ -35,31 +34,34 @@ func Formatter(request *types.APIContext, resource *types.RawResource) {
 		caWindows = " -caChecksum " + ca
 	}
 
-	requestj, err1 := json.Marshal(request)
-	if err1 != nil {
-		logrus.Infof("jianghang err : %s", err1)
-	} else {
-		logrus.Infof("jianghang json request: %s", string(requestj[:]))
-	}
-
-	var into []client.ClusterRegistrationToken
-	err := access.List(request, &schema.Version, client.ClusterRegistrationTokenType, &types.QueryOptions{}, &into)
-	if err != nil {
-		logrus.Infof("jianghang access.list err : %s", err)
-	} else {
-		logrus.Infof("jianghang into: %s", into)
-	}
-
-	intoj, err := json.Marshal(into)
-	if err != nil {
-		logrus.Infof("jianghang err : %s", err)
-	} else {
-		logrus.Infof("jianghang json into: %s", string(intoj[:]))
-	}
-
 	token, _ := resource.Values["token"].(string)
 	if token != "" {
-		url := getURL(request, token)
+		var clusterArch string
+		var crtList []client.ClusterRegistrationToken
+		err := access.List(request, &schema.Version, client.ClusterRegistrationTokenType, &types.QueryOptions{}, &crtList)
+		if err != nil {
+			logrus.Infof("jianghang access.list err : %s", err)
+		} else {
+			logrus.Infof("jianghang into: %s", crtList)
+		}
+
+		for _, crt := range crtList {
+			if crt.Token == token {
+				var cluster client.Cluster
+				err := access.ByID(request, &schema.Version, client.ClusterType, crt.ClusterID, &cluster)
+
+				if err != nil {
+					logrus.Infof("jianghang access.ByID err : %s", err)
+				} else {
+					logrus.Infof("jianghang cluster: %s", cluster)
+				}
+
+				clusterArch = cluster.Arch
+				break
+			}
+		}
+
+		url := getURL(request, token, clusterArch)
 		resource.Values["insecureCommand"] = fmt.Sprintf(insecureCommandFormat, url)
 		resource.Values["command"] = fmt.Sprintf(commandFormat, url)
 		resource.Values["nodeCommand"] = fmt.Sprintf(nodeCommandFormat,
@@ -133,8 +135,15 @@ func getRootURL(request *types.APIContext) string {
 	return serverURL
 }
 
-func getURL(request *types.APIContext, token string) string {
-	path := "/v3/import/" + token + ".yaml"
+func getURL(request *types.APIContext, token, clusterArch string) string {
+	var path string
+	switch clusterArch {
+	case "arm64":
+		path = "/v3/import/arm64" + token + ".yaml"
+	default:
+		path = "/v3/import/" + token + ".yaml"
+	}
+	// path := "/v3/import/" + token + ".yaml"
 	serverURL := settings.ServerURL.Get()
 	if serverURL == "" {
 		serverURL = request.URLBuilder.RelativeToRoot(path)
