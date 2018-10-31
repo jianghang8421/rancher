@@ -3,6 +3,8 @@ package access
 import (
 	"fmt"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/rancher/norman/parse/builder"
 	"github.com/rancher/norman/types"
 	"github.com/rancher/norman/types/convert"
@@ -70,6 +72,8 @@ func List(context *types.APIContext, version *types.APIVersion, typeName string,
 	if err != nil {
 		return err
 	}
+
+	logrus.Infof("jianghang data: %s", data)
 
 	b := builder.NewBuilder(context)
 	b.Version = version
