@@ -8,7 +8,8 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/rancher/norman/api/access"
-
+	"github.com/rancher/types/apis/management.cattle.io/v3/schema"
+	"github.com/rancher/types/apis/client/management/v3"
 	"github.com/rancher/norman/types"
 	"github.com/rancher/rancher/pkg/image"
 	"github.com/rancher/rancher/pkg/settings"
@@ -35,7 +36,7 @@ func Formatter(request *types.APIContext, resource *types.RawResource) {
 	}
 
 	var into []map[string]interface{}
-	access.List(request, request.Version, request.Type, &types.QueryOptions{}, into)
+	access.List(request, &schema.Version, client.ClusterRegistrationTokenType, &types.QueryOptions{}, into)
 	intoj, err := json.Marshal(into)
 	if err != nil {
 		logrus.Infof("jianghang err : %s", err)
