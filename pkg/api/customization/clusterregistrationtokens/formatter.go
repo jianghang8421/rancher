@@ -8,12 +8,12 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/rancher/norman/api/access"
-	"github.com/rancher/types/apis/management.cattle.io/v3/schema"
-	"github.com/rancher/types/apis/client/management/v3"
 	"github.com/rancher/norman/types"
 	"github.com/rancher/rancher/pkg/image"
 	"github.com/rancher/rancher/pkg/settings"
 	"github.com/rancher/rancher/pkg/systemtemplate"
+	"github.com/rancher/types/apis/management.cattle.io/v3/schema"
+	"github.com/rancher/types/client/management/v3"
 )
 
 const (
