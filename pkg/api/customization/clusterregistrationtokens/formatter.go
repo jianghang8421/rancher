@@ -35,7 +35,14 @@ func Formatter(request *types.APIContext, resource *types.RawResource) {
 		caWindows = " -caChecksum " + ca
 	}
 
-	var into []client.ClusterRegistrationToken
+	requestj, err1 := json.Marshal(request)
+	if err1 != nil {
+		logrus.Infof("jianghang err : %s", err1)
+	} else {
+		logrus.Infof("jianghang json request: %s", string(requestj[:]))
+	}
+
+	var into map[string]client.ClusterRegistrationToken
 	err := access.List(request, &schema.Version, client.ClusterRegistrationTokenType, &types.QueryOptions{}, into)
 	if err != nil {
 		logrus.Infof("jianghang access.list err : %s", err)
