@@ -1,6 +1,7 @@
 package clusterregistrationtokens
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 
@@ -33,9 +34,14 @@ func Formatter(request *types.APIContext, resource *types.RawResource) {
 		caWindows = " -caChecksum " + ca
 	}
 
-	var into interface{}
-	access.List(request, request.Version, request.Type, nil, into)
-	logrus.Infof("jianghang %s", into)
+	var into []map[string]interface{}
+	access.List(request, request.Version, request.Type, &types.QueryOptions{}, into)
+	intoj, err := json.Marshal(into)
+	if err != nil {
+		logrus.Infof("jianghang err : %s", err)
+	} else {
+		logrus.Infof("jianghang %s", string(intoj[:]))
+	}
 
 	token, _ := resource.Values["token"].(string)
 	if token != "" {
