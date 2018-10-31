@@ -139,7 +139,7 @@ func getURL(request *types.APIContext, token, clusterArch string) string {
 	var path string
 	switch clusterArch {
 	case "arm64":
-		path = "/v3/import/arm64" + token + ".yaml"
+		path = "/v3/import/arm64/" + token + ".yaml"
 	default:
 		path = "/v3/import/" + token + ".yaml"
 	}
