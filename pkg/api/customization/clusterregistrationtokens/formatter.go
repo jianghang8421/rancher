@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/rancher/norman/api/access"
 	"github.com/rancher/norman/types"
 	"github.com/rancher/rancher/pkg/image"
@@ -38,29 +36,15 @@ func Formatter(request *types.APIContext, resource *types.RawResource) {
 	if token != "" {
 		var clusterArch string
 		var crtList []client.ClusterRegistrationToken
-		err := access.List(request, &schema.Version, client.ClusterRegistrationTokenType, &types.QueryOptions{}, &crtList)
-		if err != nil {
-			logrus.Infof("jianghang access.list err : %s", err)
-		} else {
-			logrus.Infof("jianghang into: %s", crtList)
-		}
-
+		access.List(request, &schema.Version, client.ClusterRegistrationTokenType, &types.QueryOptions{}, &crtList)
 		for _, crt := range crtList {
 			if crt.Token == token {
 				var cluster client.Cluster
-				err := access.ByID(request, &schema.Version, client.ClusterType, crt.ClusterID, &cluster)
-
-				if err != nil {
-					logrus.Infof("jianghang access.ByID err : %s", err)
-				} else {
-					logrus.Infof("jianghang cluster: %s", cluster)
-				}
-
+				access.ByID(request, &schema.Version, client.ClusterType, crt.ClusterID, &cluster)
 				clusterArch = cluster.Arch
 				break
 			}
 		}
-
 		url := getURL(request, token, clusterArch)
 		resource.Values["insecureCommand"] = fmt.Sprintf(insecureCommandFormat, url)
 		resource.Values["command"] = fmt.Sprintf(commandFormat, url)
@@ -143,7 +127,6 @@ func getURL(request *types.APIContext, token, clusterArch string) string {
 	default:
 		path = "/v3/import/" + token + ".yaml"
 	}
-	// path := "/v3/import/" + token + ".yaml"
 	serverURL := settings.ServerURL.Get()
 	if serverURL == "" {
 		serverURL = request.URLBuilder.RelativeToRoot(path)
