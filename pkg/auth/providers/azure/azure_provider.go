@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/go-autorest/autorest/adal"
@@ -21,6 +22,7 @@ import (
 	"github.com/rancher/types/config"
 	"github.com/rancher/types/user"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -166,20 +168,28 @@ func (ap *azureProvider) loginUser(
 		}
 	}
 
+	logrus.Debug("[AZURE_PROVIDER] Started token swap with AzureAD")
+
 	azureClient, err := newClientCode(azureCredential.Code, config)
 	if err != nil {
 		return v3.Principal{}, nil, "", err
 	}
+
+	logrus.Debug("[AZURE_PROVIDER] Completed token swap with AzureAD")
 
 	oid, err := parseJWTforField(azureClient.accessToken(), "oid")
 	if err != nil {
 		return v3.Principal{}, nil, "", err
 	}
 
+	logrus.Debug("[AZURE_PROVIDER] Started getting user info from AzureAD")
+
 	user, err := azureClient.userClient.Get(context.Background(), oid)
 	if err != nil {
 		return v3.Principal{}, nil, "", err
 	}
+
+	logrus.Debug("[AZURE_PROVIDER] Completed getting user info from AzureAD")
 
 	userPrincipal := ap.userToPrincipal(user)
 	userPrincipal.Me = true
@@ -354,20 +364,31 @@ func (ap *azureProvider) userGroupsToPrincipals(
 	azureClient *azureClient,
 	groups graphrbac.UserGetMemberGroupsResult,
 ) ([]v3.Principal, error) {
-	var groupPrincipals []v3.Principal
-	for _, group := range *groups.Value {
-		groupObj, err := azureClient.groupClient.Get(context.Background(), group)
-		if err != nil {
-			return groupPrincipals, err
-		}
+	start := time.Now()
+	logrus.Debug("[AZURE_PROVIDER] Started gathering users groups")
+	var g errgroup.Group
+	groupPrincipals := make([]v3.Principal, len(*groups.Value))
+	for i, group := range *groups.Value {
+		j := i
+		gp := group
+		g.Go(func() error {
+			groupObj, err := azureClient.groupClient.Get(context.Background(), gp)
+			if err != nil {
+				logrus.Debugf("[AZURE_PROVIDER] Error getting group: %v", err)
+				return err
+			}
 
-		p := ap.groupToPrincipal(groupObj)
-		p.MemberOf = true
-
-		groupPrincipals = append(groupPrincipals, p)
+			p := ap.groupToPrincipal(groupObj)
+			p.MemberOf = true
+			groupPrincipals[j] = p
+			return nil
+		})
 	}
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+	logrus.Debugf("[AZURE_PROVIDER] Completed gathering users groups, took %v", time.Now().Sub(start))
 	return groupPrincipals, nil
-
 }
 
 func (ap *azureProvider) groupToPrincipal(group graphrbac.ADGroup) v3.Principal {

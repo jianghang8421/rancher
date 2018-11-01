@@ -5,6 +5,7 @@ import (
 
 	"github.com/rancher/norman/controller"
 	"github.com/rancher/norman/event"
+	"github.com/rancher/norman/objectclient/dynamic"
 	"github.com/rancher/norman/restwatch"
 	"github.com/rancher/norman/signal"
 	"github.com/rancher/norman/store/proxy"
@@ -28,7 +29,6 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
@@ -116,8 +116,7 @@ func NewScaledContext(config rest.Config) (*ScaledContext, error) {
 
 	dynamicConfig := config
 	if dynamicConfig.NegotiatedSerializer == nil {
-		configConfig := dynamic.ContentConfig()
-		dynamicConfig.NegotiatedSerializer = configConfig.NegotiatedSerializer
+		dynamicConfig.NegotiatedSerializer = dynamic.NegotiatedSerializer
 	}
 
 	context.UnversionedClient, err = restwatch.UnversionedRESTClientFor(&dynamicConfig)
@@ -289,8 +288,7 @@ func NewManagementContext(config rest.Config) (*ManagementContext, error) {
 
 	dynamicConfig := config
 	if dynamicConfig.NegotiatedSerializer == nil {
-		configConfig := dynamic.ContentConfig()
-		dynamicConfig.NegotiatedSerializer = configConfig.NegotiatedSerializer
+		dynamicConfig.NegotiatedSerializer = dynamic.NegotiatedSerializer
 	}
 
 	context.UnversionedClient, err = restwatch.UnversionedRESTClientFor(&dynamicConfig)
@@ -402,8 +400,7 @@ func NewUserContext(scaledContext *ScaledContext, config rest.Config, clusterNam
 
 	dynamicConfig := config
 	if dynamicConfig.NegotiatedSerializer == nil {
-		configConfig := dynamic.ContentConfig()
-		dynamicConfig.NegotiatedSerializer = configConfig.NegotiatedSerializer
+		dynamicConfig.NegotiatedSerializer = dynamic.NegotiatedSerializer
 	}
 
 	context.UnversionedClient, err = restwatch.UnversionedRESTClientFor(&dynamicConfig)
@@ -431,6 +428,70 @@ func (w *UserContext) StartAndWait(ctx context.Context) error {
 	w.Start(ctx)
 	<-ctx.Done()
 	return ctx.Err()
+}
+
+func NewUserOnlyContext(config rest.Config) (*UserOnlyContext, error) {
+	var err error
+	context := &UserOnlyContext{
+		RESTConfig: config,
+	}
+
+	context.K8sClient, err = kubernetes.NewForConfig(&config)
+	if err != nil {
+		return nil, err
+	}
+
+	context.Apps, err = appsv1beta2.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	context.Core, err = corev1.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	context.Project, err = projectv3.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	context.RBAC, err = rbacv1.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	context.Extensions, err = extv1beta1.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	context.BatchV1, err = batchv1.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	context.BatchV1Beta1, err = batchv1beta1.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	dynamicConfig := config
+	if dynamicConfig.NegotiatedSerializer == nil {
+		dynamicConfig.NegotiatedSerializer = dynamic.NegotiatedSerializer
+	}
+
+	context.UnversionedClient, err = restwatch.UnversionedRESTClientFor(&dynamicConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	context.Schemas = types.NewSchemas().
+		AddSchemas(managementSchema.Schemas).
+		AddSchemas(clusterSchema.Schemas).
+		AddSchemas(projectSchema.Schemas)
+
+	return context, err
 }
 
 func (w *UserOnlyContext) Start(ctx context.Context) error {
