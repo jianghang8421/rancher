@@ -120,13 +120,7 @@ func getRootURL(request *types.APIContext) string {
 }
 
 func getURL(request *types.APIContext, token, clusterArch string) string {
-	var path string
-	switch clusterArch {
-	case "arm64":
-		path = "/v3/import/" + token + ".yaml" + "?arch=arm64"
-	default:
-		path = "/v3/import/" + token + ".yaml"
-	}
+	path := "/v3/import/" + token + ".yaml"
 	serverURL := settings.ServerURL.Get()
 	if serverURL == "" {
 		serverURL = request.URLBuilder.RelativeToRoot(path)
@@ -140,5 +134,9 @@ func getURL(request *types.APIContext, token, clusterArch string) string {
 		}
 	}
 
+	switch clusterArch {
+	case "arm64":
+		serverURL = serverURL + "?arch=arm64"
+	}
 	return serverURL
 }

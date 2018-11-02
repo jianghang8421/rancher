@@ -3,6 +3,8 @@ package clusterregistrationtokens
 import (
 	"net/http"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/gorilla/mux"
 	"github.com/rancher/norman/types"
 	"github.com/rancher/norman/urlbuilder"
@@ -15,7 +17,10 @@ import (
 func ClusterImportHandler(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "text/plain")
 	token := mux.Vars(req)["token"]
-	arch := mux.Vars(req)["arch"]
+	arch := req.URL.Query().Get("arch")
+
+	logrus.Infof("jianghang urlquery arch %s", arch)
+
 	urlBuilder, err := urlbuilder.New(req, schema.Version, types.NewSchemas())
 	if err != nil {
 		resp.WriteHeader(500)
