@@ -15,26 +15,7 @@ import (
 func ClusterImportHandler(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "text/plain")
 	token := mux.Vars(req)["token"]
-
-	urlBuilder, err := urlbuilder.New(req, schema.Version, types.NewSchemas())
-	if err != nil {
-		resp.WriteHeader(500)
-		resp.Write([]byte(err.Error()))
-		return
-	}
-
-	url := urlBuilder.RelativeToRoot("")
-	if err := systemtemplate.SystemTemplate(resp, image.Resolve(settings.AgentImage.Get()), token, url); err != nil {
-		resp.WriteHeader(500)
-		resp.Write([]byte(err.Error()))
-	}
-}
-
-func OtherArchsClusterImportHandler(resp http.ResponseWriter, req *http.Request) {
-	resp.Header().Set("Content-Type", "text/plain")
-	token := mux.Vars(req)["token"]
 	arch := mux.Vars(req)["arch"]
-
 	urlBuilder, err := urlbuilder.New(req, schema.Version, types.NewSchemas())
 	if err != nil {
 		resp.WriteHeader(500)
@@ -43,7 +24,6 @@ func OtherArchsClusterImportHandler(resp http.ResponseWriter, req *http.Request)
 	}
 
 	url := urlBuilder.RelativeToRoot("")
-
 	var agentimage string
 	switch arch {
 	case "arm64":
@@ -51,6 +31,7 @@ func OtherArchsClusterImportHandler(resp http.ResponseWriter, req *http.Request)
 	default:
 		agentimage = settings.AgentImage.Get()
 	}
+
 	if err := systemtemplate.SystemTemplate(resp, image.Resolve(agentimage), token, url); err != nil {
 		resp.WriteHeader(500)
 		resp.Write([]byte(err.Error()))

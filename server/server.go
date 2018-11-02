@@ -68,7 +68,6 @@ func Start(ctx context.Context, httpPort, httpsPort int, scaledContext *config.S
 	root.Handle("/", ui.UI(managementAPI))
 	root.PathPrefix("/v3-public").Handler(publicAPI)
 	root.Handle("/v3/import/{token}.yaml", http.HandlerFunc(clusterregistrationtokens.ClusterImportHandler))
-	root.Handle("/v3/import/{arch}/{token}.yaml", http.HandlerFunc(clusterregistrationtokens.OtherArchsClusterImportHandler))
 	root.Handle("/v3/connect", connectHandler)
 	root.Handle("/v3/connect/register", connectHandler)
 	root.Handle("/v3/connect/config", connectConfigHandler)
