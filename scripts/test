@@ -26,6 +26,9 @@ echo Running tests
 rm -rf build/testdata
 mkdir -p build/testdata
 cd build/testdata
+if [ ${ARCH} == arm64 ]; then
+    export ETCD_UNSUPPORTED_ARCH=arm64
+fi
 KUBECONFIG= ../../$CMD --add-local=true &
 PID=$!
 trap cleanup exit
