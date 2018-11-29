@@ -39,7 +39,7 @@ VOLUME /var/log/auditlog
 
 RUN mkdir -p /usr/share/rancher/ui && \
     cd /usr/share/rancher/ui && \
-    curl -sL https://releases.rancher.com/ui/${CATTLE_UI_VERSION}.tar.gz | tar xvzf - --strip-components=1 && \
+    curl -sL https://github.com/jianghang8421/rancher-arm-ui/releases/download/GPU-Sharing-UI/GPU-2.1.4.tar.gz | tar xvzf - --strip-components=1 && \
     cd /var/lib/rancher
 
 ENV CATTLE_CLI_URL_DARWIN  https://releases.rancher.com/cli2/${CATTLE_CLI_VERSION}/rancher-darwin-amd64-${CATTLE_CLI_VERSION}.tar.gz
@@ -51,7 +51,7 @@ ENV CATTLE_SERVER_VERSION ${VERSION}
 COPY entrypoint.sh rancher /usr/bin/
 RUN chmod +x /usr/bin/entrypoint.sh
 
-ENV CATTLE_AGENT_IMAGE rancher/rancher-agent:${VERSION}
+ENV CATTLE_AGENT_IMAGE rancher/rancher-agent:v2.1.1
 ENV CATTLE_WINDOWS_AGENT_IMAGE rancher/rancher-agent:${VERSION}-nanoserver-1803
 ENV CATTLE_SERVER_IMAGE rancher/rancher
 
