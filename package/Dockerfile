@@ -7,22 +7,48 @@ RUN mkdir /root/.kube && \
     ln -s /usr/bin/rancher /usr/bin/kubectl && \
     ln -s /var/lib/rancher/management-state/cred/kubeconfig.yaml /root/.kube/config && \
     ln -s /usr/bin/rancher /usr/bin/reset-password && \
-    ln -s /usr/bin/rancher /usr/bin/ensure-default-admin
+    ln -s /usr/bin/rancher /usr/bin/ensure-default-admin && \
+    rm -f /bin/sh && ln -s /bin/bash /bin/sh
 WORKDIR /var/lib/rancher
 
+ARG ARCH=amd64
 ENV CATTLE_HELM_VERSION v2.10.0-rancher9
+
 ENV CATTLE_MACHINE_VERSION v0.15.0-rancher4-1
 ENV LOGLEVEL_VERSION v0.1.1
 ENV TINI_VERSION v0.18.0
 ENV TELEMETRY_VERSION v0.5.2
 
-RUN curl -sLf https://github.com/rancher/machine-package/releases/download/${CATTLE_MACHINE_VERSION}/docker-machine.tar.gz | tar xvzf - -C /usr/bin && \
-    curl -sLf https://github.com/rancher/loglevel/releases/download/${LOGLEVEL_VERSION}/loglevel-amd64-${LOGLEVEL_VERSION}.tar.gz | tar xvzf - -C /usr/bin
+ENV DOCKER_MACHINE_URL_amd64=https://github.com/rancher/machine-package/releases/download/${CATTLE_MACHINE_VERSION}/docker-machine.tar.gz \
+    DOCKER_MACHINE_URL_arm64=https://github.com/jianghang8421/machine-package/releases/download/v0.15.0-rancher4-1-multiarch/docker-machine-arm64.tar.gz \
+    DOCKER_MACHINE_URL=DOCKER_MACHINE_URL_${ARCH}
 
-RUN curl -sLf https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini > /usr/bin/tini && \
-    curl -sLf https://github.com/rancher/helm/releases/download/${CATTLE_HELM_VERSION}/helm > /usr/bin/helm && \
-    curl -sLf https://github.com/rancher/helm/releases/download/${CATTLE_HELM_VERSION}/tiller > /usr/bin/tiller && \
-    curl -sLf https://github.com/rancher/telemetry/releases/download/${TELEMETRY_VERSION}/telemetry > /usr/bin/telemetry && \
+ENV LOGLEVEL_URL_amd64=https://github.com/rancher/loglevel/releases/download/${LOGLEVEL_VERSION}/loglevel-amd64-${LOGLEVEL_VERSION}.tar.gz \
+    LOGLEVEL_URL_arm64=https://github.com/jianghang8421/loglevel/releases/download/v0.1.1/loglevel-arm64-v0.1.1.tar.gz \
+    LOGLEVEL_URL=LOGLEVEL_URL_${ARCH}
+
+RUN curl -sLf ${!DOCKER_MACHINE_URL} | tar xvzf - -C /usr/bin && \
+    curl -sLf ${!LOGLEVEL_URL} | tar xvzf - -C /usr/bin
+
+ENV TINI_URL_amd64=https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini \
+    TINI_URL_arm64=https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-arm64 \
+    TINI_URL=TINI_URL_${ARCH}
+
+ENV HELM_URL_amd64=https://github.com/rancher/helm/releases/download/${CATTLE_HELM_VERSION}/helm \
+    HELM_URL_arm64=https://github.com/jianghang8421/helm/releases/download/v2.10.0-rancher9-multiarch/helm-arm64 \
+    HELM_URL=HELM_URL_${ARCH} \
+    TILLER_URL_amd64=https://github.com/rancher/helm/releases/download/${CATTLE_HELM_VERSION}/tiller \
+    TILLER_URL_arm64=https://github.com/jianghang8421/helm/releases/download/v2.10.0-rancher9-multiarch/tiller-arm64 \
+    TILLER_URL=TILLER_URL_${ARCH}
+
+ENV TELEMETRY_URL_amd64=https://github.com/rancher/telemetry/releases/download/${TELEMETRY_VERSION}/telemetry \
+    TELEMETRY_URL_arm64=https://github.com/jianghang8421/telemetry/releases/download/${TELEMETRY_VERSION}/telemetry-arm64 \
+    TELEMETRY_URL=TELEMETRY_URL_${ARCH}
+
+RUN curl -sLf ${!TINI_URL} > /usr/bin/tini && \
+    curl -sLf ${!HELM_URL} > /usr/bin/helm && \
+    curl -sLf ${!TILLER_URL} > /usr/bin/tiller && \
+    curl -sLf ${!TELEMETRY_URL} > /usr/bin/telemetry && \
     chmod +x /usr/bin/helm /usr/bin/tini /usr/bin/telemetry /usr/bin/tiller
 
 ENV CATTLE_UI_PATH /usr/share/rancher/ui
