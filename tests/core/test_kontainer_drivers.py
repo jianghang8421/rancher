@@ -1,12 +1,19 @@
-import sys
-
 import pytest
+import platform
 
 from .conftest import wait_for_condition, wait_until
 
-DRIVER_URL = "https://github.com/rancher/kontainer-engine-driver-example/" \
-             "releases/download/v0.2.1/kontainer-engine-driver-example-" \
-             + sys.platform
+# DRIVER_URL = "https://github.com/rancher/kontainer-engine-driver-example/" \
+#              "releases/download/v0.2.1/kontainer-engine-driver-example-" \
+#              + sys.platform
+DRIVER_URL = "https://github.com/jianghang8421/" \
+             + "kontainer-engine-driver-example/" \
+             + "releases/download/v0.2.1-multiarch/" \
+             + "kontainer-engine-driver-example-linux-amd64"
+DRIVER_ARM64_URL = "https://github.com/jianghang8421/" \
+                   + "kontainer-engine-driver-example/" \
+                   + "releases/download/v0.2.1-multiarch/" \
+                   + "kontainer-engine-driver-example-linux-arm64"
 
 
 def test_builtin_drivers_are_present(admin_mc):
@@ -26,10 +33,13 @@ def test_builtin_drivers_are_present(admin_mc):
 
 @pytest.mark.nonparallel
 def test_kontainer_driver_lifecycle(admin_mc, remove_resource):
+    URL = DRIVER_URL
+    if platform.machine() == "aarch64":
+        URL = DRIVER_ARM64_URL
     kd = admin_mc.client.create_kontainerDriver(
         createDynamicSchema=True,
         active=True,
-        url=DRIVER_URL
+        url=URL
     )
     remove_resource(kd)
 
@@ -66,10 +76,13 @@ def test_kontainer_driver_lifecycle(admin_mc, remove_resource):
 def test_enabling_driver_exposes_schema(admin_mc, remove_resource):
     """ Test if enabling driver exposes its dynamic schema, drivers are
      downloaded / installed once they are active """
+    URL = DRIVER_URL
+    if platform.machine() == "aarch64":
+        URL = DRIVER_ARM64_URL
     kd = admin_mc.client.create_kontainerDriver(
         createDynamicSchema=True,
         active=False,
-        url=DRIVER_URL
+        url=URL
     )
     remove_resource(kd)
 
