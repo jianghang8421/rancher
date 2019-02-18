@@ -13,7 +13,7 @@ var (
 	provider       Provider
 	InjectDefaults string
 
-	AgentImage                      = NewSetting("agent-image", "rancher/rancher-agent:master")
+	AgentImage                      = NewSetting("agent-image", "jianghang8421/rancher-agent:master")
 	AuthImage                       = NewSetting("auth-image", "rancher/kube-api-auth:v0.1.1")
 	WindowsAgentImage               = NewSetting("windows-agent-image", "rancher/rancher-agent:master-nanoserver-1803")
 	CACerts                         = NewSetting("cacerts", "")
