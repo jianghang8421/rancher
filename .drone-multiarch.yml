@@ -40,7 +40,7 @@ steps:
       tag: "master-amd64"
     when:
       branch: 
-        - multiarch
+        - armchina
       event:
         - push
   - name: publish-master-agent-amd64
@@ -61,7 +61,7 @@ steps:
       tag: "master-amd64"
     when:
       branch: 
-        - multiarch
+        - armchina
       event:
         - push
   - name: publish-amd64
@@ -204,7 +204,7 @@ steps:
       tag: "master-arm64"
     when:
       branch: 
-        - multiarch
+        - armchina
       event:
         - push
   - name: publish-master-agent-arm64
@@ -225,7 +225,7 @@ steps:
       tag: "master-arm64"
     when:
       branch: 
-        - multiarch
+        - armchina
       event:
         - push
   - name: publish-arm64
@@ -289,7 +289,7 @@ steps:
         - linux/arm64
     when:
       branch:
-        - multiarch
+        - armchina
       event:
         - push
   - name: push-master-agent-manifest
@@ -306,7 +306,7 @@ steps:
         - linux/arm64
     when:
       branch:
-        - multiarch
+        - armchina
       event:
         - push
   - name: push-manifest

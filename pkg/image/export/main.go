@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"sort"
+	"strings"
 
 	"github.com/rancher/norman/types/convert"
 	"github.com/rancher/types/apis/management.cattle.io/v3"
@@ -216,18 +217,64 @@ func mirrorScript(targetImages []string) error {
 	for _, targetImage := range targetImages {
 		srcImage, ok := image.Mirrors[targetImage]
 		if !ok {
+			log.Printf("jh srcImage not ok. targetImage: %s", targetImage)
 			continue
 		}
+		log.Printf("jh srcImage: %s targetImage: %s", srcImage, targetImage)
 
 		saveImages = append(saveImages, targetImage)
-		fmt.Fprintf(mirror, "docker pull %s\n", srcImage)
-		if targetImage != srcImage {
-			fmt.Fprintf(mirror, "docker tag %s %s\n", srcImage, targetImage)
-			fmt.Fprintf(mirror, "docker push %s\n", targetImage)
+		if isManifest(srcImage) {
+			for _, arch := range image.ArchitectureList {
+				src := manifestResolve(srcImage, arch)
+				fmt.Fprintf(mirror, "docker pull %s\n", src)
+				fmt.Fprintf(mirror, "docker tag %s %s-%s\n", src, targetImage, arch)
+				fmt.Fprintf(mirror, "docker push %s-%s\n", targetImage, arch)
+			}
+			createManifest := fmt.Sprintf("docker manifest create %s ", targetImage)
+			for _, arch := range image.ArchitectureList {
+				createManifest = createManifest + fmt.Sprintf("%s-%s ", targetImage, arch)
+			}
+			fmt.Fprintf(mirror, "%s\n", createManifest)
+			for _, arch := range image.ArchitectureList {
+				fmt.Fprintf(mirror, "docker manifest annotate %s %s-%s --arch %s\n", targetImage, targetImage, arch, arch)
+			}
+			fmt.Fprintf(mirror, "docker manifest push -p %s\n", targetImage)
+		} else {
+			fmt.Fprintf(mirror, "docker pull %s\n", srcImage)
+			if targetImage != srcImage {
+				fmt.Fprintf(mirror, "docker tag %s %s\n", srcImage, targetImage)
+				fmt.Fprintf(mirror, "docker push %s\n", targetImage)
+			}
 		}
 	}
 
 	return nil
+}
+
+func isManifest(srcImage string) bool {
+	for _, image := range image.ManifestList {
+		if image == srcImage {
+			return true
+		}
+	}
+	return false
+}
+
+func manifestResolve(srcImage string, architecture string) (src string) {
+	src = ""
+	if strings.Contains(srcImage, "quay.io") && strings.Contains(srcImage, "etcd") {
+		if architecture == "amd64" {
+			src = srcImage
+		} else {
+			src = fmt.Sprintf("%s-%s", srcImage, architecture)
+		}
+	} else if strings.Contains(srcImage, "quay.io") && !strings.Contains(srcImage, "etcd") {
+		src = fmt.Sprintf("%s-%s", srcImage, architecture)
+	} else if strings.Contains(srcImage, "gcr.io/google_containers") || strings.Contains(srcImage, "k8s.gcr.io") {
+		imageStrs := strings.Split(srcImage, ":")
+		src = fmt.Sprintf("%s-%s:%s", imageStrs[0], architecture, imageStrs[1])
+	}
+	return
 }
 
 func collectionImages(objs ...interface{}) ([]string, error) {
