@@ -18,7 +18,7 @@ func main() {
 }
 
 func run(images ...string) error {
-	targetImages, err := collectionImages(v3.K8sVersionToRKESystemImages, v3.ToolsSystemImages)
+	targetImages, err := collectionImages(v3.K8sVersionToRKESystemImages, v3.ToolsSystemImages, v3.Arm64K8sVersionToRKESystemImages)
 	if err != nil {
 		return err
 	}

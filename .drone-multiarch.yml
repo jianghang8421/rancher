@@ -1,0 +1,344 @@
+kind: pipeline
+name: amd64
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build
+    image: rancher/dapper:v0.4.1
+    privileged: true
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    commands:
+      - dapper ci
+  - name: stage-binaries
+    image: rancher/dapper:v0.4.1
+    commands:
+      - cp -r ./bin/* ./package/
+    when:
+      event:
+        - tag
+        - push
+  - name: publish-master-amd64
+    image: plugins/docker
+    environment:
+      PLUGIN_CUSTOM_DNS: 1.1.1.1
+    settings:
+      username:
+        from_secret: dockerhub_username
+      password:
+        from_secret: dockerhub_password
+      dockerfile: package/Dockerfile
+      context: package/
+      build_args:
+        - ARCH=amd64
+        - VERSION=master
+      repo: jianghang8421/rancher
+      tag: "master-amd64"
+    when:
+      branch: 
+        - multiarch
+      event:
+        - push
+  - name: publish-master-agent-amd64
+    image: plugins/docker
+    environment:
+      PLUGIN_CUSTOM_DNS: 1.1.1.1
+    settings:
+      username:
+        from_secret: dockerhub_username
+      password:
+        from_secret: dockerhub_password
+      dockerfile: package/Dockerfile.agent
+      context: package/
+      build_args:
+        - ARCH=amd64
+        - VERSION=master
+      repo: jianghang8421/rancher-agent
+      tag: "master-amd64"
+    when:
+      branch: 
+        - multiarch
+      event:
+        - push
+  - name: publish-amd64
+    image: plugins/docker
+    environment:
+      PLUGIN_CUSTOM_DNS: 1.1.1.1
+    settings:
+      username:
+        from_secret: dockerhub_username
+      password:
+        from_secret: dockerhub_password
+      dockerfile: package/Dockerfile
+      context: package/
+      build_args:
+        - ARCH=amd64
+        - VERSION=${DRONE_TAG}
+      repo: jianghang8421/rancher
+      tag: "${DRONE_TAG}-amd64"
+    when:
+      event:
+        - tag
+  - name: publish-agent-amd64
+    image: plugins/docker
+    environment:
+      PLUGIN_CUSTOM_DNS: 1.1.1.1
+    settings:
+      username:
+        from_secret: dockerhub_username
+      password:
+        from_secret: dockerhub_password
+      dockerfile: package/Dockerfile.agent
+      context: package/
+      build_args:
+        - ARCH=amd64
+        - VERSION=${DRONE_TAG}
+      repo: jianghang8421/rancher-agent
+      tag: "${DRONE_TAG}-amd64"
+    when:
+      event:
+        - tag
+  - name: github_binary_prerelease
+    image: plugins/github-release
+    settings:
+      api_key:
+        from_secret: github_token
+      files:
+      - "bin/rancher-*"
+      checksum:
+      - sha256
+      prerelease: true
+    when:
+      ref:
+        include:
+        - "refs/tags/*rc*"
+      event:
+      - tag
+  - name: github_binary_release
+    image: plugins/github-release
+    settings:
+      api_key:
+        from_secret: github_token
+      files:
+      - "bin/rancher-*"
+      checksum:
+      - sha256
+    when:
+      ref:
+        exclude:
+        - "refs/tags/*rc*"
+      event:
+      - tag
+  - name: chart-promote
+    image: rancher/dapper:v0.4.1
+    commands:
+      - dapper chart/copy
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    when:
+      event: 
+        - deployment
+      environment: promote-stable
+  - name: chart-publish
+    image: plugins/gcs
+    settings:
+      source: bin/chart
+      target: releases.rancher.com/server-charts
+      acl: allUsers:READER
+      cache_control: public,no-cache,proxy-revalidate
+      token:
+        from_secret: google_auth_key
+    when:
+      event: 
+        - tag
+        - deployment
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+---
+kind: pipeline
+name: arm64
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+  - name: build
+    image: rancher/dapper:v0.4.1
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    commands:
+      - dapper ci
+  - name: stage-binaries
+    image: rancher/dapper:v0.4.1
+    commands:
+      - cp -r ./bin/* ./package/
+      - sed -i -e '$a\' -e 'ENV ETCD_UNSUPPORTED_ARCH=arm64' package/Dockerfile
+    when:
+      event:
+        - tag
+        - push
+  - name: publish-master-arm64
+    image: plugins/docker
+    environment:
+      PLUGIN_CUSTOM_DNS: 1.1.1.1
+    settings:
+      username:
+        from_secret: dockerhub_username
+      password:
+        from_secret: dockerhub_password
+      dockerfile: package/Dockerfile
+      context: package/
+      build_args:
+        - ARCH=arm64
+        - VERSION=master
+      repo: jianghang8421/rancher
+      tag: "master-arm64"
+    when:
+      branch: 
+        - multiarch
+      event:
+        - push
+  - name: publish-master-agent-arm64
+    image: plugins/docker
+    environment:
+      PLUGIN_CUSTOM_DNS: 1.1.1.1
+    settings:
+      username:
+        from_secret: dockerhub_username
+      password:
+        from_secret: dockerhub_password
+      dockerfile: package/Dockerfile.agent
+      context: package/
+      build_args:
+        - ARCH=arm64
+        - VERSION=master
+      repo: jianghang8421/rancher-agent
+      tag: "master-arm64"
+    when:
+      branch: 
+        - multiarch
+      event:
+        - push
+  - name: publish-arm64
+    image: plugins/docker
+    environment:
+      PLUGIN_CUSTOM_DNS: 1.1.1.1
+    settings:
+      username:
+        from_secret: dockerhub_username
+      password:
+        from_secret: dockerhub_password
+      dockerfile: package/Dockerfile
+      context: package/
+      build_args:
+        - ARCH=arm64
+        - VERSION=${DRONE_TAG}
+      repo: jianghang8421/rancher
+      tag: "${DRONE_TAG}-arm64"
+    when:
+      event:
+        - tag
+  - name: publish-agent-arm64
+    image: plugins/docker
+    environment:
+      PLUGIN_CUSTOM_DNS: 1.1.1.1
+    settings:
+      username:
+        from_secret: dockerhub_username
+      password:
+        from_secret: dockerhub_password
+      dockerfile: package/Dockerfile.agent
+      context: package/
+      build_args:
+        - ARCH=arm64
+        - VERSION=${DRONE_TAG}
+      repo: jianghang8421/rancher-agent
+      tag: "${DRONE_TAG}-arm64"
+    when:
+      event:
+        - tag
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+---
+kind: pipeline
+name: manifest
+
+steps:
+  - name: push-master-manifest
+    image: plugins/manifest:1.0.2
+    settings:
+      username:
+        from_secret: dockerhub_username
+      password:
+        from_secret: dockerhub_password
+      target: "jianghang8421/rancher:master"
+      template: "jianghang8421/rancher:master-ARCH"
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    when:
+      branch:
+        - multiarch
+      event:
+        - push
+  - name: push-master-agent-manifest
+    image: plugins/manifest:1.0.2
+    settings:
+      username:
+        from_secret: dockerhub_username
+      password:
+        from_secret: dockerhub_password
+      target: "jianghang8421/rancher-agent:master"
+      template: "jianghang8421/rancher-agent:master-ARCH"
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    when:
+      branch:
+        - multiarch
+      event:
+        - push
+  - name: push-manifest
+    image: plugins/manifest:1.0.2
+    settings:
+      username:
+        from_secret: dockerhub_username
+      password:
+        from_secret: dockerhub_password
+      target: "jianghang8421/rancher:${DRONE_TAG}"
+      template: "jianghang8421/rancher:${DRONE_TAG}-ARCH"
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    when:
+      event:
+        - tag
+  - name: push-agent-manifest
+    image: plugins/manifest:1.0.2
+    settings:
+      username:
+        from_secret: dockerhub_username
+      password:
+        from_secret: dockerhub_password
+      target: "jianghang8421/rancher-agent:${DRONE_TAG}"
+      template: "jianghang8421/rancher-agent:${DRONE_TAG}-ARCH"
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    when:
+      event:
+        - tag
+depends_on:
+- amd64
+- arm64
