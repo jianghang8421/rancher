@@ -92,6 +92,7 @@ type ClusterSpec struct {
 	EnableClusterAlerting                bool                           `json:"enableClusterAlerting" norman:"default=false"`
 	EnableClusterMonitoring              bool                           `json:"enableClusterMonitoring" norman:"default=false"`
 	LocalClusterAuthEndpoint             LocalClusterAuthEndpoint       `json:"localClusterAuthEndpoint,omitempty"`
+	Arch                                 string                         `json:"arch" norman:"default=amd64,type=enum,options=amd64|arm64"`
 }
 
 type ImportedConfig struct {
