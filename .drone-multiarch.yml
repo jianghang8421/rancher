@@ -102,6 +102,37 @@ steps:
     when:
       event:
         - tag
+  - name: github_binary_prerelease
+    image: plugins/github-release
+    settings:
+      api_key:
+        from_secret: github_token
+      files:
+      - "bin/rancher-*"
+      checksum:
+      - sha256
+      prerelease: true
+    when:
+      ref:
+        include:
+        - "refs/tags/*rc*"
+      event:
+      - tag
+  - name: github_binary_release
+    image: plugins/github-release
+    settings:
+      api_key:
+        from_secret: github_token
+      files:
+      - "bin/rancher-*"
+      checksum:
+      - sha256
+    when:
+      ref:
+        exclude:
+        - "refs/tags/*rc*"
+      event:
+      - tag
 volumes:
   - name: docker
     host:
