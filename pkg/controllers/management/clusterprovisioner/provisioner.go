@@ -448,6 +448,11 @@ func (p *Provisioner) getConfig(reconcileRKE bool, spec v3.ClusterSpec, driverNa
 		spec.RancherKubernetesEngineConfig.Nodes = nodes
 		spec.RancherKubernetesEngineConfig.SystemImages = *systemImages
 
+		if spec.Arch == "arm64" {
+			spec.RancherKubernetesEngineConfig.Architecture = "arm64"
+			spec.RancherKubernetesEngineConfig.Services.Etcd.ExtraEnv = append(spec.RancherKubernetesEngineConfig.Services.Etcd.ExtraEnv, "ETCD_UNSUPPORTED_ARCH=arm64")
+		}
+
 		data, _ := convert.EncodeToMap(spec)
 		v, _ = data[RKEDriverKey]
 	}
@@ -529,9 +534,19 @@ func (p *Provisioner) validateDriver(cluster *v3.Cluster) (string, error) {
 func getSystemImages(spec v3.ClusterSpec) (*v3.RKESystemImages, error) {
 	// fetch system images from settings
 	version := spec.RancherKubernetesEngineConfig.Version
-	systemImages, ok := v3.AllK8sVersions[version]
-	if !ok {
-		return nil, fmt.Errorf("failed to find system images for version %v", version)
+
+	var systemImages v3.RKESystemImages
+	var ok bool
+	if spec.Arch == "arm64" {
+		systemImages, ok = v3.AllArm64K8sVersions[version]
+		if !ok {
+			return nil, fmt.Errorf("failed to find arm64 system images for version %v", version)
+		}
+	} else {
+		systemImages, ok = v3.AllK8sVersions[version]
+		if !ok {
+			return nil, fmt.Errorf("failed to find system images for version %v", version)
+		}
 	}
 
 	privateRegistry := getPrivateRepo(spec.RancherKubernetesEngineConfig)
