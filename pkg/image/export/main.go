@@ -23,6 +23,15 @@ func run(images ...string) error {
 		return err
 	}
 
+	arm64TargetImages, err := collectionImages(v3.Arm64K8sVersionToRKESystemImages)
+	if err != nil {
+		return err
+	}
+
+	for _, arm64Image := range arm64TargetImages {
+		targetImages = append(targetImages, arm64Image)
+	}
+
 	for _, i := range images {
 		targetImages = append(targetImages, image.Mirror(i))
 	}
