@@ -44,13 +44,11 @@ steps:
     dockerfile: package/Dockerfile
     password:
       from_secret: docker_password
-    repo: rancher/rancher
+    repo: jianghang8421/rancher
     tag: master-amd64
     username:
       from_secret: docker_username
   when:
-    branch:
-    - master
     event:
     - push
 
@@ -66,13 +64,11 @@ steps:
     dockerfile: package/Dockerfile.agent
     password:
       from_secret: docker_password
-    repo: rancher/rancher-agent
+    repo: jianghang8421/rancher-agent
     tag: master-amd64
     username:
       from_secret: docker_username
   when:
-    branch:
-    - master
     event:
     - push
 
@@ -88,7 +84,7 @@ steps:
     dockerfile: package/Dockerfile
     password:
       from_secret: docker_password
-    repo: rancher/rancher
+    repo: jianghang8421/rancher
     tag: "${DRONE_TAG}-amd64"
     username:
       from_secret: docker_username
@@ -108,7 +104,7 @@ steps:
     dockerfile: package/Dockerfile.agent
     password:
       from_secret: docker_password
-    repo: rancher/rancher-agent
+    repo: jianghang8421/rancher-agent
     tag: "${DRONE_TAG}-amd64"
     username:
       from_secret: docker_username
@@ -225,13 +221,11 @@ steps:
     dockerfile: package/Dockerfile
     password:
       from_secret: docker_password
-    repo: rancher/rancher
+    repo: jianghang8421/rancher
     tag: master-arm64
     username:
       from_secret: docker_username
   when:
-    branch:
-    - master
     event:
     - push
 
@@ -247,13 +241,11 @@ steps:
     dockerfile: package/Dockerfile.agent
     password:
       from_secret: docker_password
-    repo: rancher/rancher-agent
+    repo: jianghang8421/rancher-agent
     tag: master-arm64
     username:
       from_secret: docker_username
   when:
-    branch:
-    - master
     event:
     - push
 
@@ -269,7 +261,7 @@ steps:
     dockerfile: package/Dockerfile
     password:
       from_secret: docker_password
-    repo: rancher/rancher
+    repo: jianghang8421/rancher
     tag: "${DRONE_TAG}-arm64"
     username:
       from_secret: docker_username
@@ -289,7 +281,7 @@ steps:
     dockerfile: package/Dockerfile.agent
     password:
       from_secret: docker_password
-    repo: rancher/rancher-agent
+    repo: jianghang8421/rancher-agent
     tag: "${DRONE_TAG}-arm64"
     username:
       from_secret: docker_username
@@ -317,14 +309,12 @@ steps:
         from_secret: docker_username
       password:
         from_secret: docker_password
-      target: "rancher/rancher:master"
-      template: "rancher/rancher:master-ARCH"
+      target: "jianghang8421/rancher:master"
+      template: "jianghang8421/rancher:master-ARCH"
       platforms:
         - linux/amd64
         - linux/arm64
     when:
-      branch:
-        - master
       event:
         - push
   - name: push-master-agent-manifest
@@ -334,14 +324,12 @@ steps:
         from_secret: docker_username
       password:
         from_secret: docker_password
-      target: "rancher/rancher-agent:master"
-      template: "rancher/rancher-agent:master-ARCH"
+      target: "jianghang8421/rancher-agent:master"
+      template: "jianghang8421/rancher-agent:master-ARCH"
       platforms:
         - linux/amd64
         - linux/arm64
     when:
-      branch:
-        - master
       event:
         - push
   - name: push-manifest
@@ -351,8 +339,8 @@ steps:
         from_secret: docker_username
       password:
         from_secret: docker_password
-      target: "rancher/rancher:${DRONE_TAG}"
-      template: "rancher/rancher:${DRONE_TAG}-ARCH"
+      target: "jianghang8421/rancher:${DRONE_TAG}"
+      template: "jianghang8421/rancher:${DRONE_TAG}-ARCH"
       platforms:
         - linux/amd64
         - linux/arm64
@@ -366,8 +354,8 @@ steps:
         from_secret: docker_username
       password:
         from_secret: docker_password
-      target: "rancher/rancher-agent:${DRONE_TAG}"
-      template: "rancher/rancher-agent:${DRONE_TAG}-ARCH"
+      target: "jianghang8421/rancher-agent:${DRONE_TAG}"
+      template: "jianghang8421/rancher-agent:${DRONE_TAG}-ARCH"
       platforms:
         - linux/amd64
         - linux/arm64
