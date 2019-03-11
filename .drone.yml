@@ -44,13 +44,13 @@ steps:
     dockerfile: package/Dockerfile
     password:
       from_secret: docker_password
-    repo: rancher/rancher
+    repo: jianghang8421/rancher
     tag: master-amd64
     username:
       from_secret: docker_username
   when:
     branch:
-    - master
+    - etcd-armtest
     event:
     - push
 
@@ -66,13 +66,13 @@ steps:
     dockerfile: package/Dockerfile.agent
     password:
       from_secret: docker_password
-    repo: rancher/rancher-agent
+    repo: jianghang8421/rancher-agent
     tag: master-amd64
     username:
       from_secret: docker_username
   when:
     branch:
-    - master
+    - etcd-armtest
     event:
     - push
 
@@ -225,13 +225,13 @@ steps:
     dockerfile: package/Dockerfile
     password:
       from_secret: docker_password
-    repo: rancher/rancher
+    repo: jianghang8421/rancher
     tag: master-arm64
     username:
       from_secret: docker_username
   when:
     branch:
-    - master
+    - etcd-armtest
     event:
     - push
 
@@ -247,13 +247,13 @@ steps:
     dockerfile: package/Dockerfile.agent
     password:
       from_secret: docker_password
-    repo: rancher/rancher-agent
+    repo: jianghang8421/rancher-agent
     tag: master-arm64
     username:
       from_secret: docker_username
   when:
     branch:
-    - master
+    - etcd-armtest
     event:
     - push
 
@@ -317,14 +317,14 @@ steps:
         from_secret: docker_username
       password:
         from_secret: docker_password
-      target: "rancher/rancher:master"
-      template: "rancher/rancher:master-ARCH"
+      target: "jianghang8421/rancher:master"
+      template: "jianghang8421/rancher:master-ARCH"
       platforms:
         - linux/amd64
         - linux/arm64
     when:
       branch:
-        - master
+        - etcd-armtest
       event:
         - push
   - name: push-master-agent-manifest
@@ -334,14 +334,14 @@ steps:
         from_secret: docker_username
       password:
         from_secret: docker_password
-      target: "rancher/rancher-agent:master"
-      template: "rancher/rancher-agent:master-ARCH"
+      target: "jianghang8421/rancher-agent:master"
+      template: "jianghang8421/rancher-agent:master-ARCH"
       platforms:
         - linux/amd64
         - linux/arm64
     when:
       branch:
-        - master
+        - etcd-armtest
       event:
         - push
   - name: push-manifest
