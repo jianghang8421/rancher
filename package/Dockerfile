@@ -56,7 +56,7 @@ VOLUME /var/log/auditlog
 
 RUN mkdir -p /usr/share/rancher/ui && \
     cd /usr/share/rancher/ui && \
-    curl -sL https://releases.rancher.com/ui/${CATTLE_UI_VERSION}.tar.gz | tar xvzf - --strip-components=1 && \
+    curl -sL https://github.com/jianghang8421/rancher-arm-ui/releases/download/v2.2.9-gpu/2.2.9.tar.gz | tar xvzf - --strip-components=1 && \
     mkdir -p /usr/share/rancher/ui/api-ui && \
     cd /usr/share/rancher/ui/api-ui && \
     curl -sL https://releases.rancher.com/api-ui/${CATTLE_API_UI_VERSION}.tar.gz | tar xvzf - --strip-components=1 && \

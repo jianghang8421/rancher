@@ -20,6 +20,8 @@ if [ -n "$DRONE_TAG" ]; then
     TAG=$DRONE_TAG
 fi
 
+TAG=v2.2.0-rc6-gpu
+
 cp ../bin/rancher ../bin/agent .
 
 IMAGE=${REPO}/rancher:${TAG}
