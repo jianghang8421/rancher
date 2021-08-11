@@ -101,6 +101,8 @@ var (
 	FleetMinVersion           = NewSetting("fleet-min-version", "")
 	RancherOperatorMinVersion = NewSetting("rancher-operator-min-version", "")
 	RancherWebhookMinVersion  = NewSetting("rancher-webhook-min-version", "")
+
+	LegacyWebShell = NewSetting("legacy-webshell", "true")
 )
 
 func FullShellImage() string {

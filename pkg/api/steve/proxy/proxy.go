@@ -79,6 +79,11 @@ func NewProxyMiddleware(sar v1.SubjectAccessReviewInterface,
 
 func routeToShellProxy(key, value string, localSupport bool, localCluster http.Handler, mux *gmux.Router, proxyHandler *Handler) func(rw http.ResponseWriter, r *http.Request) {
 	return func(rw http.ResponseWriter, r *http.Request) {
+		if strings.EqualFold(settings.LegacyWebShell.Get(), "true") {
+			mux.NotFoundHandler.ServeHTTP(rw, r)
+			return
+		}
+
 		vars := gmux.Vars(r)
 		cluster := vars["clusterID"]
 		if cluster == "local" {
