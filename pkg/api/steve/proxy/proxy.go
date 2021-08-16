@@ -13,6 +13,7 @@ import (
 	"github.com/rancher/rancher/pkg/settings"
 	"github.com/rancher/steve/pkg/auth"
 	"github.com/rancher/steve/pkg/proxy"
+	"github.com/sirupsen/logrus"
 	authzv1 "k8s.io/api/authorization/v1"
 	"k8s.io/apiserver/pkg/authentication/user"
 	"k8s.io/apiserver/pkg/authorization/authorizer"
@@ -79,6 +80,7 @@ func NewProxyMiddleware(sar v1.SubjectAccessReviewInterface,
 
 func routeToShellProxy(key, value string, localSupport bool, localCluster http.Handler, mux *gmux.Router, proxyHandler *Handler) func(rw http.ResponseWriter, r *http.Request) {
 	return func(rw http.ResponseWriter, r *http.Request) {
+		logrus.Info("jianghang routeToShellProxy")
 		if strings.EqualFold(settings.LegacyWebShell.Get(), "true") {
 			mux.NotFoundHandler.ServeHTTP(rw, r)
 			return
@@ -104,6 +106,9 @@ func routeToShellProxy(key, value string, localSupport bool, localCluster http.H
 		q.Set(key, value)
 		r.URL.RawQuery = q.Encode()
 		r.URL.Path = "/k8s/clusters/" + cluster + "/v1/management.cattle.io.clusters/local"
+
+		logrus.Infof("jianghang path: %v", r.URL.Path)
+
 		proxyHandler.ServeHTTP(rw, r)
 	}
 }

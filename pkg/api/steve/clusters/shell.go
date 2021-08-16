@@ -10,6 +10,7 @@ import (
 	"github.com/rancher/steve/pkg/podimpersonation"
 	"github.com/rancher/steve/pkg/stores/proxy"
 	"github.com/rancher/wrangler/pkg/schemas/validation"
+	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apiserver/pkg/authentication/user"
@@ -27,6 +28,7 @@ type shell struct {
 }
 
 func (s *shell) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	logrus.Info("jianghang shell ServeHTTP")
 	ctx, user, client, err := s.contextAndClient(req)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
@@ -43,11 +45,13 @@ func (s *shell) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		ImageOverride: imageOverride,
 	})
 	if err != nil {
+		logrus.Infof("jianghang create shell pod error: %v", err)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	defer func() {
+		logrus.Info("jianghang shell ServeHTTP defer func")
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 		defer cancel()
 		_ = client.CoreV1().Pods(pod.Namespace).Delete(ctx, pod.Name, metav1.DeleteOptions{})
@@ -56,6 +60,7 @@ func (s *shell) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 }
 
 func (s *shell) proxyRequest(rw http.ResponseWriter, req *http.Request, pod *v1.Pod, client kubernetes.Interface) {
+	logrus.Info("jianghang proxyRequest")
 	attachURL := client.CoreV1().RESTClient().
 		Get().
 		Namespace(pod.Namespace).
@@ -71,9 +76,12 @@ func (s *shell) proxyRequest(rw http.ResponseWriter, req *http.Request, pod *v1.
 			Command:   []string{"welcome"},
 		}, scheme.ParameterCodec).URL()
 
+	logrus.Info("jianghang proxyRequest attachURL path: %s", attachURL.Path)
+
 	httpClient := client.CoreV1().RESTClient().(*rest.RESTClient).Client
 	p := httputil.ReverseProxy{
 		Director: func(req *http.Request) {
+			logrus.Info("jianghang proxyRequest Director")
 			req.URL = attachURL
 			req.Host = attachURL.Host
 			delete(req.Header, "Impersonate-Group")
@@ -85,6 +93,7 @@ func (s *shell) proxyRequest(rw http.ResponseWriter, req *http.Request, pod *v1.
 		FlushInterval: time.Millisecond * 100,
 	}
 
+	logrus.Info("jianghang proxyRequest p.ServeHTTP")
 	p.ServeHTTP(rw, req)
 }
 
