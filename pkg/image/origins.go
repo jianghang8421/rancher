@@ -240,6 +240,12 @@ var OriginMap = map[string]string{
 	"windows_exporter-package":                                "https://github.com/rancher/windows_exporter-package",
 	"wins":                                                    "https://github.com/rancher/wins",
 	"wmi_exporter-package":                                    "https://github.com/rancher/wmi_exporter-package",
+	"mirrored-cilium-cilium-envoy":                            "https://github.com/cilium/proxy",
+	"mirrored-cilium-kvstoremesh":                             "https://github.com/cilium/cilium",
+	"mirrored-cluster-api-controller":                         "https://github.com/kubernetes-sigs/cluster-api",
+	"mirrored-kube-vip-kube-vip-iptables":                     "https://github.com/kube-vip/kube-vip",
+	"mirrored-neuvector-prometheus-exporter":                  "https://github.com/neuvector/prometheus-exporter",
+	"mirrored-neuvector-registry-adapter":                     "https://github.com/neuvector/registry-adapter",
 }
 
 const (
