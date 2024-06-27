@@ -20,6 +20,9 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientcache "k8s.io/client-go/tools/cache"
+	"k8s.io/kubernetes/pkg/apis/core"
+	v1utils "k8s.io/kubernetes/pkg/apis/core/v1"
+	v1validation "k8s.io/kubernetes/pkg/apis/core/validation"
 )
 
 const (
@@ -499,4 +502,25 @@ func zeroOutResourceQuotaLimit(limit *v32.ResourceQuotaLimit, exceeded corev1.Re
 	toReturn := &v32.ResourceQuotaLimit{}
 	err = convert.ToObj(limitMap, toReturn)
 	return toReturn, err
+}
+
+func ValidateLimitRange(ns string, spec *corev1.LimitRangeSpec) error {
+	if spec == nil {
+		return nil
+	}
+	limitRange := &corev1.LimitRange{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "pandaria-validate-limitrange",
+			Namespace: ns,
+		},
+		Spec: *spec,
+	}
+	externalLimitRange := &core.LimitRange{}
+	if err := v1utils.Convert_v1_LimitRange_To_core_LimitRange(limitRange, externalLimitRange, nil); err != nil {
+		return err
+	}
+	if errs := v1validation.ValidateLimitRange(externalLimitRange); len(errs) != 0 {
+		return errs[0]
+	}
+	return nil
 }
