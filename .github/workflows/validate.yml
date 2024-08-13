@@ -2,7 +2,7 @@ name: Validate
 on: [pull_request, push]
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: test-runner-1
     env:
       GOLANG_CI_LINT_VERSION: v1.54.2
       PYTHON_VERSION: '3.11'
