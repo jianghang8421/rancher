@@ -6,7 +6,11 @@ if [ -n "$DEBUG" ]; then
   set -x
 fi
 
+echo "before git"
+
 file="$(git rev-parse --show-toplevel)/build.yaml"
+
+echo "after git"
 
 CATTLE_RANCHER_WEBHOOK_VERSION=$(yq -e '.webhookVersion' "$file")
 CATTLE_RANCHER_PROVISIONING_CAPI_VERSION=$(yq -e '.provisioningCAPIVersion' "$file")
