@@ -2,10 +2,11 @@ package vai
 
 import (
 	"fmt"
-	"github.com/rancher/shepherd/clients/rancher"
-	"github.com/rancher/shepherd/extensions/vai"
 	"strings"
 	"sync"
+
+	"github.com/rancher/shepherd/clients/rancher"
+	"github.com/rancher/shepherd/extensions/vai"
 )
 
 const (

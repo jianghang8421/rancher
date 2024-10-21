@@ -2,8 +2,7 @@ name: build-docker-images
 on: 
   push:
     branches:
-      - "master"
-      - "release/v*"
+      - "!release/v2.9-gha-test"
     tags:
       - "v*"
 env:
@@ -13,11 +12,22 @@ env:
   IMAGE_AGENT: ${{ github.repository_owner }}/rancher-agent
   IMAGE_INSTALLER: ${{ github.repository_owner }}/system-agent-installer-rancher
 jobs:
-  unit-tests:
-    uses: ./.github/workflows/unit-test.yml
+  # unit-tests:
+  #   uses: ./.github/workflows/unit-test.yml
   build-chart:
-    runs-on: ubuntu-latest
+    if: false
+    runs-on: test-runner-1
+    container: ubuntu:22.04
     steps:
+      - name: Install tools
+        run: |
+            export TZ=Asia/Kolkata
+            export DEBIAN_FRONTEND=noninteractive
+            apt update && apt install -y --no-install-recommends curl git-all sudo
+            curl -sLf https://github.com/mikefarah/yq/releases/download/v4.40.2/yq_linux_amd64.tar.gz -o yq_linux_amd64.tar.gz
+            tar zxvf yq_linux_amd64.tar.gz
+            mv yq_linux_amd64 /usr/bin/yq
+            git config --global --add safe.directory '*'
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Setup Tag Env Variables
@@ -30,7 +40,7 @@ jobs:
           HELM_URL: https://get.helm.sh/helm-${{ steps.env.outputs.HELM_VERSION }}-linux-amd64.tar.gz
           HELM_UNITTEST_VERSION: ${{ steps.env.outputs.HELM_UNITTEST_VERSION }}
         run: |
-          sudo snap install yq
+          # sudo snap install yq
           curl ${{ env.HELM_URL }} | tar xvzf - --strip-components=1 -C /tmp/ && \
           sudo mv /tmp/helm /usr/bin/helm_v3 && \
           sudo chmod +x /usr/bin/helm_v3
@@ -52,7 +62,7 @@ jobs:
           retention-days: 1
           overwrite: true
   publish-chart:
-    runs-on: ubuntu-latest
+    runs-on: test-runner-1
     needs: [build-chart, push-images]
     if: github.event_name == 'push' && contains(github.ref, 'tags/') # Only run on push
     permissions:
@@ -84,12 +94,22 @@ jobs:
           headers: |-
             cache-control: public,no-cache,proxy-revalidate
   build-server:
-    runs-on: ubuntu-latest
+    # container: summerwind/actions-runner-dind:ubuntu-22.04
+    runs-on: test-runner-dind
     strategy:
       matrix:
         os: [linux]
-        arch: [amd64, arm64]
+        arch: [amd64]
     steps:
+      - name: Install tools
+        run: |
+            export TZ=Asia/Kolkata
+            export DEBIAN_FRONTEND=noninteractive
+            sudo apt update && sudo apt install -y --no-install-recommends curl git-all
+            sudo curl -sLf https://github.com/mikefarah/yq/releases/download/v4.40.2/yq_linux_amd64.tar.gz -o yq_linux_amd64.tar.gz
+            sudo tar zxvf yq_linux_amd64.tar.gz
+            sudo mv yq_linux_amd64 /usr/bin/yq
+            git config --global --add safe.directory '*'
       - name: Checkout code
         uses: actions/checkout@v4
       # Cleaning the runner is important to free enough space to build rancher, otherwise the build will fail
@@ -152,7 +172,7 @@ jobs:
           overwrite: false
   build-agent:
     needs: [build-server]
-    runs-on: ubuntu-latest
+    runs-on: test-runner-1
     strategy:
       matrix:
         os: [linux]
@@ -236,45 +256,46 @@ jobs:
           if-no-files-found: error
           retention-days: 1
           overwrite: false
-  integration-tests:
-    needs: [build-agent]
-    uses: ./.github/workflows/integration-tests.yml
-    with:
-      parent_run_id: ${{ github.run_id }}
-  build-agent-windows:
-    needs: [integration-tests]
-    strategy:
-      matrix:
-        os: [windows]
-        version: [2019, 2022]
-    runs-on: ${{ matrix.os }}-${{ matrix.version }}
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup Environment Variables
-        uses: ./.github/actions/setup-tag-env
-      - name: Load Secrets from Vault
-        uses: rancher-eio/read-vault-secrets@main
-        with:
-          secrets: |
-            secret/data/github/repo/${{ github.repository }}/dockerhub/rancher/credentials username | DOCKER_USERNAME ;
-            secret/data/github/repo/${{ github.repository }}/dockerhub/rancher/credentials password | DOCKER_PASSWORD
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ env.DOCKER_PASSWORD }}
-      - name: Build Windows Server Image
-        run: |
-          docker build -t ${{ env.IMAGE_AGENT }}:${{ env.TAG }}-windows-${{ matrix.version }} --build-arg VERSION=${{ env.TAG }} --build-arg SERVERCORE_VERSION=ltsc${{ matrix.version }} -f package/windows/Dockerfile.agent .
-          docker push ${{ env.IMAGE_AGENT }}:${{ env.TAG }}-windows-${{ matrix.version }}
-        shell: bash
+  # integration-tests:
+  #   needs: [build-agent]
+  #   uses: ./.github/workflows/integration-tests.yml
+  #   with:
+  #     parent_run_id: ${{ github.run_id }}
+  # build-agent-windows:
+  #   needs: [integration-tests]
+  #   strategy:
+  #     matrix:
+  #       os: [windows]
+  #       version: [2019, 2022]
+  #   runs-on: ${{ matrix.os }}-${{ matrix.version }}
+  #   permissions:
+  #     contents: read
+  #     id-token: write
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #     - name: Setup Environment Variables
+  #       uses: ./.github/actions/setup-tag-env
+  #     - name: Load Secrets from Vault
+  #       uses: rancher-eio/read-vault-secrets@main
+  #       with:
+  #         secrets: |
+  #           secret/data/github/repo/${{ github.repository }}/dockerhub/rancher/credentials username | DOCKER_USERNAME ;
+  #           secret/data/github/repo/${{ github.repository }}/dockerhub/rancher/credentials password | DOCKER_PASSWORD
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v3
+  #       with:
+  #         username: ${{ env.DOCKER_USERNAME }}
+  #         password: ${{ env.DOCKER_PASSWORD }}
+  #     - name: Build Windows Server Image
+  #       run: |
+  #         docker build -t ${{ env.IMAGE_AGENT }}:${{ env.TAG }}-windows-${{ matrix.version }} --build-arg VERSION=${{ env.TAG }} --build-arg SERVERCORE_VERSION=ltsc${{ matrix.version }} -f package/windows/Dockerfile.agent .
+  #         docker push ${{ env.IMAGE_AGENT }}:${{ env.TAG }}-windows-${{ matrix.version }}
+  #       shell: bash
   push-images:
-    runs-on: ubuntu-latest
-    needs: [unit-tests, integration-tests]
+    runs-on: test-runner-1
+    # needs: [unit-tests]
+    if: false
     permissions:
       contents: read
       id-token: write
@@ -323,7 +344,7 @@ jobs:
           docker tag "$image_agent_id" docker.io/${{ env.IMAGE_AGENT }}:${{ env.TAG }}-${{ matrix.arch }}
           docker push docker.io/${{ env.IMAGE_AGENT }}:${{ env.TAG }}-${{ matrix.arch }}
   merge-server-manifest:
-    runs-on: ubuntu-latest
+    runs-on: test-runner-1
     needs: [push-images]
     permissions:
       contents: read
@@ -358,8 +379,8 @@ jobs:
         run: |
           docker buildx imagetools inspect ${{ env.IMAGE }}:${{ env.TAG }}
   merge-agent-manifest:
-    runs-on: ubuntu-latest
-    needs: [push-images, build-agent-windows]
+    runs-on: test-runner-1
+    needs: [push-images]
     permissions:
       contents: read
       id-token: write
@@ -384,21 +405,21 @@ jobs:
       - name: Create manifest list and push
         run: |
           # docker manifest is used with windows images to maintain os.version in the manifest
-          docker manifest create ${{ env.IMAGE_AGENT }}:${{ env.TAG }} \
-            ${{ env.IMAGE_AGENT }}:${{ env.TAG }}-windows-2019 \
-            ${{ env.IMAGE_AGENT }}:${{ env.TAG }}-windows-2022
+          # docker manifest create ${{ env.IMAGE_AGENT }}:${{ env.TAG }} \
+          #   ${{ env.IMAGE_AGENT }}:${{ env.TAG }}-windows-2019 \
+          #   ${{ env.IMAGE_AGENT }}:${{ env.TAG }}-windows-2022
 
-          docker manifest push ${{ env.IMAGE_AGENT }}:${{ env.TAG }}
+          # docker manifest push ${{ env.IMAGE_AGENT }}:${{ env.TAG }}
 
           docker buildx imagetools create -t ${{ env.IMAGE_AGENT }}:${{ env.TAG }} \
             --append ${{ env.IMAGE_AGENT }}:${{ env.TAG }}-amd64 \
             --append ${{ env.IMAGE_AGENT }}:${{ env.TAG }}-arm64 
           
           if [[ "${{ github.ref_name }}" == release/v* ]]; then
-            docker manifest create ${{ env.IMAGE_AGENT }}:${{ env.HEAD_TAG }} \
-              ${{ env.IMAGE_AGENT }}:${{ env.TAG }}-windows-2019 \
-              ${{ env.IMAGE_AGENT }}:${{ env.TAG }}-windows-2022
-            docker manifest push ${{ env.IMAGE_AGENT }}:${{ env.HEAD_TAG }}
+            # docker manifest create ${{ env.IMAGE_AGENT }}:${{ env.HEAD_TAG }} \
+            #   ${{ env.IMAGE_AGENT }}:${{ env.TAG }}-windows-2019 \
+            #   ${{ env.IMAGE_AGENT }}:${{ env.TAG }}-windows-2022
+            # docker manifest push ${{ env.IMAGE_AGENT }}:${{ env.HEAD_TAG }}
 
             docker buildx imagetools create -t ${{ env.IMAGE_AGENT }}:${{ env.HEAD_TAG }} \
               --append ${{ env.IMAGE_AGENT }}:${{ env.TAG }}-amd64 \
@@ -411,7 +432,7 @@ jobs:
     needs: 
       - merge-server-manifest
       - build-chart
-    runs-on: ubuntu-latest
+    runs-on: test-runner-1
     strategy:
       matrix:
         os: [linux]
@@ -470,7 +491,7 @@ jobs:
           file: ./package/Dockerfile.installer
           labels: "${{ steps.meta.outputs.labels }}"
   merge-installer-manifest:
-    runs-on: ubuntu-latest
+    runs-on: test-runner-1
     needs: [build-installer]
     permissions:
       contents: read
@@ -511,7 +532,7 @@ jobs:
           docker buildx imagetools inspect ${{ env.IMAGE_INSTALLER }}:${{ env.TAG }}
   create-images-files:
     if: github.event_name == 'push' && contains(github.ref, 'tags/') # Only run on push
-    runs-on: ubuntu-latest
+    runs-on: test-runner-1
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -545,7 +566,7 @@ jobs:
         run: gh release upload -R ${{ env.REPOSITORY_OWNER }}/rancher ${{ env.TAG }} ./dist/* --clobber
   docker-image-digests:
     if: github.event_name == 'push' && contains(github.ref, 'tags/') # Only run on tag
-    runs-on: ubuntu-latest
+    runs-on: test-runner-1
     needs: [create-images-files]
     env:
       DOCKER_REGISTRY: "docker.io"

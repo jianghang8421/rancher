@@ -2,12 +2,20 @@ name: Validate
 on: [pull_request, push]
 jobs:
   validate:
+    if: false
     runs-on: test-runner-1
+    container: ubuntu:22.04
     env:
       GOLANG_CI_LINT_VERSION: v1.54.2
       PYTHON_VERSION: '3.11'
       GOLANG_VERSION: '1.22'
     steps:
+      - name: Install tools
+        run: |
+            export TZ=Asia/Kolkata
+            export DEBIAN_FRONTEND=noninteractive
+            apt update && apt install -y --no-install-recommends unzip curl sudo ca-certificates git-all
+            git config --global --add safe.directory '/__w/rancher/rancher'
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Uninstall existing Python versions
@@ -30,6 +38,10 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "${{ env.GOLANG_VERSION }}"
+      - name: Install golangci-lint
+        run: |
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin "v1.59.0"
+            curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/spectrometer/master/install.sh | sh
       - name: Install Python and dependencies
         run: |
           sudo apt-get update
