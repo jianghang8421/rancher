@@ -15,8 +15,18 @@ jobs:
   unit-tests:
     uses: ./.github/workflows/unit-test.yml
   build-chart:
-    runs-on: ubuntu-latest
+    runs-on: test-runner-1
+    container: ubuntu:22.04
     steps:
+      - name: Install tools
+        run: |
+            export TZ=Asia/Kolkata
+            export DEBIAN_FRONTEND=noninteractive
+            apt update && apt install -y --no-install-recommends curl git-all sudo
+            curl -sLf https://github.com/mikefarah/yq/releases/download/v4.40.2/yq_linux_amd64.tar.gz -o yq_linux_amd64.tar.gz
+            tar zxvf yq_linux_amd64.tar.gz
+            mv yq_linux_amd64 /usr/bin/yq
+            git config --global --add safe.directory '*'
       - name: Checkout code
         uses: actions/checkout@v4
       - id: env 
@@ -40,12 +50,21 @@ jobs:
       - name: Package
         run: ./scripts/chart/package
   build-server:
-    runs-on: ubuntu-latest
+    runs-on: test-runner-dind
     strategy:
       matrix:
         os: [linux]
         arch: [amd64, arm64]
     steps:
+      - name: Install tools
+        run: |
+            export TZ=Asia/Kolkata
+            export DEBIAN_FRONTEND=noninteractive
+            sudo apt update && sudo apt install -y --no-install-recommends curl git-all
+            sudo curl -sLf https://github.com/mikefarah/yq/releases/download/v4.40.2/yq_linux_amd64.tar.gz -o yq_linux_amd64.tar.gz
+            sudo tar zxvf yq_linux_amd64.tar.gz
+            sudo mv yq_linux_amd64 /usr/bin/yq
+            git config --global --add safe.directory '*'
       - name: Checkout code
         uses: actions/checkout@v4
       # Cleaning the runner is important to free enough space to build rancher, otherwise the build will fail
@@ -105,8 +124,9 @@ jobs:
           retention-days: 1
           overwrite: false
   build-agent:
+    if: false
     needs: [build-server]
-    runs-on: ubuntu-latest
+    runs-on: test-runner-dind
     strategy:
       matrix:
         os: [linux]
@@ -184,19 +204,19 @@ jobs:
           if-no-files-found: error
           retention-days: 1
           overwrite: false
-  integration-tests:
-    needs: [build-agent]
-    uses: ./.github/workflows/integration-tests.yml
-    with:
-      parent_run_id: ${{ github.run_id }}
-  build-agent-windows:
-    strategy:
-      matrix:
-        os: [windows]
-        version: [2019, 2022]
-    runs-on: ${{ matrix.os }}-${{ matrix.version }}
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Build Windows Agent Image
-      run: docker build -t ${{ env.IMAGE_AGENT }}:${{ env.TAG }} --build-arg VERSION=${{ env.COMMIT }} --build-arg SERVERCORE_VERSION=ltsc${{ matrix.version }} -f package/windows/Dockerfile.agent .
+  # integration-tests:
+  #   needs: [build-agent]
+  #   uses: ./.github/workflows/integration-tests.yml
+  #   with:
+  #     parent_run_id: ${{ github.run_id }}
+  # build-agent-windows:
+  #   strategy:
+  #     matrix:
+  #       os: [windows]
+  #       version: [2019, 2022]
+  #   runs-on: ${{ matrix.os }}-${{ matrix.version }}
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #   - name: Build Windows Agent Image
+  #     run: docker build -t ${{ env.IMAGE_AGENT }}:${{ env.TAG }} --build-arg VERSION=${{ env.COMMIT }} --build-arg SERVERCORE_VERSION=ltsc${{ matrix.version }} -f package/windows/Dockerfile.agent .

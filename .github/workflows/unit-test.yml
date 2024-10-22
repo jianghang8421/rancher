@@ -5,6 +5,7 @@ jobs:
     env:
       GOLANG_VERSION: '1.22'
     runs-on: test-runner-1
+    container: ubuntu:22.04
     timeout-minutes: 60
     steps:
       - name: Checkout code
