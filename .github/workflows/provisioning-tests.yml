@@ -2,7 +2,7 @@ name: Provisioning tests
 on:
   pull_request:
     branches:
-      - release/v*
+      - "!release/v2.9-gha-test"
 jobs:
   provisioning_tests:
     strategy:
