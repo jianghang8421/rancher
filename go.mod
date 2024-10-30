@@ -20,6 +20,7 @@ replace (
 	github.com/rancher/machine => github.com/rancher/machine v0.15.0-rancher109
 	github.com/rancher/rancher/pkg/apis => ./pkg/apis
 	github.com/rancher/rancher/pkg/client => ./pkg/client
+	github.com/rancher/steve => github.com/jianghang8421/steve v0.0.0-20241101011745-0e7eef298548 //test
 
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc => go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.35.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp => go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.35.1
