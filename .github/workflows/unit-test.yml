@@ -2,12 +2,27 @@ name: Unit Tests
 on: [workflow_dispatch, workflow_call]
 jobs:
   unit-test:
-    runs-on: ubuntu-latest
+    env:
+      GOLANG_VERSION: '1.22'
+    runs-on: test-runner-1
+    container: ubuntu:22.04
     timeout-minutes: 60
     steps:
+      - name: Install tools
+        run: |
+            export TZ=Asia/Kolkata
+            export DEBIAN_FRONTEND=noninteractive
+            apt update && apt install -y --no-install-recommends ca-certificates curl git-all sudo
+            curl -sLf https://github.com/mikefarah/yq/releases/download/v4.40.2/yq_linux_amd64.tar.gz -o yq_linux_amd64.tar.gz
+            tar zxvf yq_linux_amd64.tar.gz
+            mv yq_linux_amd64 /usr/bin/yq
+            git config --global --add safe.directory '*'
       - name: Checkout code
         uses: actions/checkout@v4
-
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "${{ env.GOLANG_VERSION }}"
       - name: Run unit tests
         run: go test -cover -tags=test ./pkg/...
 

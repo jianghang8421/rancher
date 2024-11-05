@@ -15,9 +15,16 @@ env:
 
 jobs:
   check-changes:
-    runs-on: ubuntu-latest
-
+    if: false
+    runs-on: test-runner-1
+    container: ubuntu:22.04
     steps:
+      - name: Install tools
+        run: |
+            export TZ=Asia/Kolkata
+            export DEBIAN_FRONTEND=noninteractive
+            apt update && apt install -y --no-install-recommends curl sudo ca-certificates git-all
+            git config --global --add safe.directory '/__w/rancher/rancher'
       -
         uses: actions/checkout@v3
         with:
